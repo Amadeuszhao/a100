@@ -14,9 +14,7 @@ from load_cifar100 import load_cifar100_data
 from keras import backend as K
 from keras.callbacks import ReduceLROnPlateau, EarlyStopping,ModelCheckpoint
 import os
-from keras.models import load_model
 from loadcifar10 import load_cifar10_data
-import numpy as np
 #K.set_image_dim_ordering('tf')
 os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 
@@ -63,37 +61,37 @@ if __name__ == '__main__':
     MODEL_PATH ='/data/plum/models'
 
     # Load Cifar10 data. Please implement your own load_data() module for your own dataset
-    X_train, Y_train, X_valid, Y_valid = load_cifar100_data(img_rows, img_cols)
-
-    # # Load our model
-    # model = vgg19_model(num_classes)
-    # model.summary()
-    # learning_rate_reduction = ReduceLROnPlateau(monitor='val_accuracy', patience=8, verbose=1, factor=0.1, min_lr=0.00000001)
-    # chechpointer = ModelCheckpoint(os.path.join(MODEL_PATH, 'vgg19/vgg19_cifar10_{epoch:03d}_{val_accuracy:04f}.h5'),monitor='val_accuracy',save_weights_only=False,period=1,save_best_only=True)
+    X_train, Y_train, X_valid, Y_valid = load_cifar10_data(img_rows, img_cols)
+    print(X_train.shape)
+    # Load our model
+    model = vgg19_model(num_classes)
+    model.summary()
+    learning_rate_reduction = ReduceLROnPlateau(monitor='val_accuracy', patience=8, verbose=1, factor=0.1, min_lr=0.00000001)
+    chechpointer = ModelCheckpoint(os.path.join(MODEL_PATH, 'vgg19_cifar10/vgg19_cifar10_{epoch:03d}_{val_accuracy:04f}.h5'),monitor='val_accuracy',save_weights_only=False,period=1,save_best_only=True)
     
-    # print('当前学习率为：', learning_rate_reduction)
-    # # 定义早停回调函数，当监测的验证集精度连续5次没有优化，则停止网络训练，保存现有模型
-    # es = EarlyStopping(monitor='val_loss', patience=15)
-    # callback = [learning_rate_reduction, es , chechpointer]
+    print('当前学习率为：', learning_rate_reduction)
+    # 定义早停回调函数，当监测的验证集精度连续5次没有优化，则停止网络训练，保存现有模型
+    es = EarlyStopping(monitor='val_loss', patience=15)
+    callback = [learning_rate_reduction, es , chechpointer]
 
-    # # Start Fine-tuning
-    # model.fit(X_train, Y_train,
-    #           epochs=nb_epoch,
-    #           shuffle=True,
-    #           verbose=1,
-    #           validation_data=(X_valid, Y_valid),
-    #           callbacks=[callback]
-    #           )
+    # Start Fine-tuning
+    model.fit(X_train, Y_train,
+              epochs=nb_epoch,
+              shuffle=True,
+              verbose=1,
+              validation_data=(X_valid, Y_valid),
+              callbacks=[callback]
+              )
 
   
-    model = load_model('/data/plum/models/vgg19/vgg19_cifar100_022_0.588000.h5')
+    
     # Make predictions
     predictions_valid = model.predict(X_valid, verbose=1)
-    np.save(predictions_valid,'preds')
-    # # Cross-entropy loss score
-    # scores = log_loss(Y_valid, predictions_valid)
-    # print("Cross-entropy loss score",scores)
+
+    # Cross-entropy loss score
+    scores = log_loss(Y_valid, predictions_valid)
+    print("Cross-entropy loss score",scores)
     
-    # ## evaluate modelon test data:
-    # score = model.evaluate(X_valid, Y_valid, verbose=0)
-    # print("%s: %.2f%%" % (model.metrics_names[1], score[1]*100))
+    ## evaluate modelon test data:
+    score = model.evaluate(X_valid, Y_valid, verbose=0)
+    print("%s: %.2f%%" % (model.metrics_names[1], score[1]*100))
