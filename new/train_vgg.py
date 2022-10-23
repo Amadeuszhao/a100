@@ -15,13 +15,13 @@ from keras import backend as K
 from keras.callbacks import ReduceLROnPlateau, EarlyStopping,ModelCheckpoint
 import os
 #K.set_image_dim_ordering('tf')
-os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
-def vgg19_model(num_classes):
+def vgg16_model(num_classes):
 	
 	
 	# create the base pre-trained model
-	base_model = VGG19(weights='imagenet', include_top=False, input_tensor=Input(shape=(224,224,3)))
+	base_model = VGG16(weights='imagenet', include_top=False, input_tensor=Input(shape=(224,224,3)))
 
 	# add a global spatial average pooling layer
 	x = base_model.output
@@ -63,10 +63,10 @@ if __name__ == '__main__':
     X_train, Y_train, X_valid, Y_valid = load_cifar100_data(img_rows, img_cols)
 
     # Load our model
-    model = vgg19_model(num_classes)
+    model = vgg16_model(num_classes)
     model.summary()
     learning_rate_reduction = ReduceLROnPlateau(monitor='val_accuracy', patience=8, verbose=1, factor=0.1, min_lr=0.00000001)
-    chechpointer = ModelCheckpoint(os.path.join(MODEL_PATH, 'vgg19/vgg19_cifar100_{epoch:03d}_{val_accuracy:04f}.h5'),monitor='val_accuracy',save_weights_only=False,period=1,save_best_only=True)
+    chechpointer = ModelCheckpoint(os.path.join(MODEL_PATH, 'vgg16/vgg16_cifar100_{epoch:03d}_{val_accuracy:04f}.h5'),monitor='val_accuracy',save_weights_only=False,period=1,save_best_only=True)
     
     print('当前学习率为：', learning_rate_reduction)
     # 定义早停回调函数，当监测的验证集精度连续5次没有优化，则停止网络训练，保存现有模型

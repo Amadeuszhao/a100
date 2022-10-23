@@ -17,7 +17,7 @@ def load_cifar100_data(img_rows, img_cols):
     nb_valid_samples = len(X_valid)
 
     # Resize trainging images
-    if K.image_dim_ordering() == 'th':
+    if K.image_data_format() == "channels_first":
         X_train = np.array([cv2.resize(img.transpose(1,2,0), (img_rows,img_cols)).transpose(2,0,1) for img in X_train[:nb_train_samples,:,:,:]])
         X_valid = np.array([cv2.resize(img.transpose(1,2,0), (img_rows,img_cols)).transpose(2,0,1) for img in X_valid[:nb_valid_samples,:,:,:]])
     else:

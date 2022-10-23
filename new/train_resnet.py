@@ -1,7 +1,7 @@
 from keras.applications.resnet50 import ResNet50
 from keras.preprocessing import image
 from keras.models import Model
-from keras.layers import Input, Dense, GlobalAveragePooling2D, AveragePooling2D, Flatten
+from keras.layers import Input, Dense, GlobalAveragePooling2D, AveragePooling2D, Flatten,Dropout
 from keras import backend as K
 from keras.layers.normalization import BatchNormalization
 from keras.optimizers import SGD
@@ -11,6 +11,7 @@ from keras import backend as K
 from keras.callbacks import ReduceLROnPlateau, EarlyStopping,ModelCheckpoint
 import os
 #K.set_image_dim_ordering('tf')
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 def resnet50_model(num_classes):
 	
@@ -22,8 +23,10 @@ def resnet50_model(num_classes):
 	x = base_model.output
 	print("Shape:", x.shape)
 	x_newfc = x = GlobalAveragePooling2D()(x)
-
 	# and a logistic layer -- let's say we have 100 classes
+	x_newfc = Dense(512)(x_newfc)
+	x_newfc = Dropout(0.5)(x_newfc)
+
 	x_newfc = Dense(num_classes, activation='softmax', name='fc10')(x_newfc)
 
 	# this is the model we will train
@@ -50,13 +53,14 @@ if __name__ == '__main__':
     channel = 3
     num_classes = 100 
     nb_epoch = 50
-    MODEL_PATH ='/data/data/zhz/zw/models'
+    MODEL_PATH ='/data/plum/models'
 
     # Load Cifar10 data. Please implement your own load_data() module for your own dataset
     X_train, Y_train, X_valid, Y_valid = load_cifar100_data(img_rows, img_cols)
 
     # Load our model
     model = resnet50_model(num_classes)
+    model.summary()
     learning_rate_reduction = ReduceLROnPlateau(monitor='val_accuracy', patience=8, verbose=1, factor=0.1, min_lr=0.00000001)
     chechpointer = ModelCheckpoint(os.path.join(MODEL_PATH, 'resnet/resnet_cifar100_{epoch:03d}_{val_accuracy:04f}.h5'),monitor='val_accuracy',save_weights_only=False,period=1,save_best_only=True)
     
