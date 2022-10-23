@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import pickle
 from keras.utils import np_utils
 import tensorflow as tf
-NUM_CLASSES = 100
+NUM_CLASSES = 10
 WEIGHT_DECAY = 1e-4
 MODEL_PATH ='/data/data/zhz/zw/models'
 opt =  tf.keras.optimizers.SGD(lr=0.01, decay = 1e-8)

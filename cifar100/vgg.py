@@ -1,5 +1,5 @@
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 # retrian the mentioned above model with cifar100
 from keras.callbacks import ReduceLROnPlateau, EarlyStopping,ModelCheckpoint
 from keras.preprocessing.image import ImageDataGenerator
@@ -13,15 +13,12 @@ from keras.applications import VGG16
 from keras.applications import VGG19
 from keras.applications import ResNet50
 from keras.applications import InceptionV3
-from keras.datasets import cifar10
+from keras.datasets import cifar100
 import matplotlib.pyplot as plt
 import pickle
 from keras.utils import np_utils
-from tensorflow.keras.models import Sequential
-from keras.models import Model
-from keras.utils.vis_utils import plot_model
 import tensorflow as tf
-NUM_CLASSES = 10
+NUM_CLASSES = 100
 WEIGHT_DECAY = 1e-4
 MODEL_PATH ='/data/data/zhz/zw/models'
 opt =  tf.keras.optimizers.SGD(lr=0.01, decay = 1e-8)
@@ -31,7 +28,7 @@ opt =  tf.keras.optimizers.SGD(lr=0.01, decay = 1e-8)
 #model.summary()
 
 
-(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+(x_train, y_train), (x_test, y_test) = cifar100.load_data()
 y_train = np_utils.to_categorical(y_train)
     
 y_test = np_utils.to_categorical(y_test)
@@ -40,36 +37,18 @@ from tensorflow import keras
 from tensorflow.keras.layers import  Flatten,Dense ,Dropout,Dense
 # Create the model
 from tensorflow.keras.layers import Input
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, BatchNormalization, Input, add, Dropout
-
 IMAGE_SIZE = 32
 # 数据集加载
 #help(tf.keras.datasets)
-model = Sequential()        # 采用序贯模型
-
-model.add(Conv2D(filters=32, kernel_size=(3, 3), padding='same', activation='relu', input_shape=(32, 32, 3)))   # 添加卷积层
-model.add(Conv2D(filters=32, kernel_size=(3, 3), padding='same', activation='relu'))
-model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))  
-model.add(Dropout(0.5))       
-model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu',padding='same'))
-model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu',padding='same'))
-model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))  
-model.add(Dropout(0.5))       
-model.add(Conv2D(filters=128, kernel_size=(3, 3), activation='relu',padding='same'))
-model.add(Conv2D(filters=128, kernel_size=(3, 3), activation='relu',padding='same'))
-model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))  
-model.add(Dropout(0.5))  
-model.add(Flatten())                            # 添加平铺层，将特征图的神经元全部展开，用于后续的全连接层
-model.add(Dense(512, activation='relu'))        # 添加全连接层，开始进行特征整合与图像分类
-model.add(Dropout(0.5))                         # 为防止全连接层参数过多导致过拟合的产生，添加该层随机失活神经元
-model.add(Dense(NUM_CLASSES, activation='softmax'))
+model = VGG16(weights=None, include_top=True, input_shape=(IMAGE_SIZE, IMAGE_SIZE, 3),classes=NUM_CLASSES)
+model.summary()
 
 # 编译网络（定义损失函数、优化器、评估指标）
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
 
 # 定义学习率回调函数（监测验证集精度，根据所设参数，按照标准衰减学习率）
 learning_rate_reduction = ReduceLROnPlateau(monitor='val_accuracy', patience=8, verbose=1, factor=0.1, min_lr=0.00000001)
-chechpointer = ModelCheckpoint(os.path.join(MODEL_PATH, 'alexnet/alexnet_cifar10_{epoch:03d}_{val_accuracy:04f}.h5'),monitor='val_accuracy',save_weights_only=False,period=1,save_best_only=True)
+chechpointer = ModelCheckpoint(os.path.join(MODEL_PATH, 'vgg16/vgg16_cifar100_{epoch:03d}_{val_accuracy:04f}.h5'),monitor='val_accuracy',save_weights_only=False,period=1,save_best_only=True)
 
 print('当前学习率为：', learning_rate_reduction)
 # 定义早停回调函数，当监测的验证集精度连续5次没有优化，则停止网络训练，保存现有模型
